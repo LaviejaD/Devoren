@@ -1,9 +1,9 @@
-use crate::http::method::Method;
 use std::collections::HashMap;
-#[derive(Debug)]
-pub struct Request {
-    pub method: Method,
+struct Response {
+    pub endpoint: String,
     pub version: String,
     pub headers: HashMap<String, String>,
     pub body: String,
 }
+
+impl Response {}
