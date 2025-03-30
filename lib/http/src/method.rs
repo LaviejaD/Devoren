@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Method {
     Get,
     Post,
@@ -10,7 +10,7 @@ pub enum Method {
 }
 
 impl Method {
-    pub fn convert(&self) -> String {
+    pub fn to_string(&self) -> String {
         let r = match self {
             Method::Get => "GET",
             Method::Post => "POST",

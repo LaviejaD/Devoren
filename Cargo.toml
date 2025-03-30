@@ -8,3 +8,4 @@ edition = "2021"
 router_macro = {path = "./lib/router_macro"}
 router= {path = "./lib/router"}
 http = { path = "./lib/http"}
+client = {path = "./lib/client"}
