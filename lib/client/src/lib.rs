@@ -21,7 +21,7 @@ impl Client {
     }
 
     pub fn close(&self) -> std::io::Result<()> {
-        self.stream.shutdown(Shutdown::Both);
+        self.stream.shutdown(Shutdown::Both)?;
         Ok(())
     }
 }

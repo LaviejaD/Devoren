@@ -7,6 +7,7 @@ pub enum Method {
     Delete,
     Trace,
     Connect,
+    None,
 }
 
 impl Method {
@@ -19,6 +20,7 @@ impl Method {
             Method::Trace => "TRACE",
             Method::Delete => "DELETE",
             Method::Connect => "CONNECT",
+            Method::None => "None",
         };
         r.to_string()
     }
@@ -31,6 +33,8 @@ impl Method {
             "delete" => Method::Delete,
             "trace" => Method::Trace,
             "connect" => Method::Connect,
+            "none" => Method::None,
+            e if e.is_empty() => Method::None,
             e => panic!("The method '{}' no was found", e.to_string()),
         }
     }

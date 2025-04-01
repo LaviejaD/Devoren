@@ -23,27 +23,27 @@ pub fn route(attr: TokenStream, item: TokenStream) -> TokenStream {
     let endpoint = get_attrs(&attrs, 1);
 
     quote! {
-            #[derive(Clone)]
-        pub struct #fn_name;
-        impl Route for #fn_name  {
-            fn run(&self,#p:Request,mut client:Client)->thread::JoinHandle<()>  {
-                let yo = self.clone();
-                    let handle: thread::JoinHandle<()> =    thread::spawn(move||{
-    let result = yo.callback(#p);
-    client.write(result.http().as_bytes());
-    client.close();
-                    });
-               handle
+        #[derive(Clone)]
+    pub struct #fn_name;
+    impl Route for #fn_name  {
+        fn run(&self,#p:Request,mut client:Client)->thread::JoinHandle<()>  {
+            let yo = self.clone();
+                let handle: thread::JoinHandle<()> =    thread::spawn(move||{
+                    let result = yo.callback(#p);
+                let _  =    client.write(result.http().as_bytes());
+                let _  =    client.close();
+                });
+           handle
 
+                   }
+                   fn callback(&self,#p:Request)->Response{#block}
+                      fn endpoint(&self) -> (Method,String){
+
+                             (Method::from(#method.to_string()),#endpoint.to_string())
+                      }
+
+                                }
                        }
-                       fn callback(&self,#p:Request)->Response{#block}
-                          fn endpoint(&self) -> (Method,String){
-
-                                 (Method::from(#method.to_string()),#endpoint.to_string())
-                          }
-
-                                    }
-                           }
     .into()
 
     // println!("actibutos {} {}", method, endpoint);
@@ -86,11 +86,11 @@ fn get_params_name(inpust: &ItemFn, index: usize) -> Ident {
                 FnArg::Typed(t) => match *t.pat.clone() {
                     Pat::Ident(i) => {
                         //           println!("indent pat {:#?}", &t);
-                        let prueba = t.ty.clone();
-                        match *prueba.clone() {
-                            syn::Type::Path(ty) => println!("{:#?}", ty.path.segments.first()),
-                            _ => (),
-                        }
+                        // let prueba = t.ty.clone();
+                        // match *prueba.clone() {
+                        //     syn::Type::Path(ty) => println!("{:#?}", ty.path.segments.first()),
+                        //     _ => (),
+                        // }
 
                         Ident::new(&i.ident.to_string().as_str(), Span::call_site().into())
                     }

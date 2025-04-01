@@ -34,7 +34,7 @@ pub fn parser(client: &Client) -> request::Request {
                     }
                 }
                 last = byts.clone();
-                if e == args_len {
+                if e == bytslen {
                     break;
                 }
                 if is_header {
@@ -64,7 +64,7 @@ pub fn parser(client: &Client) -> request::Request {
                 }
             }
             Err(e) => {
-                println!("{e} soy error");
+                println!("{e}");
                 break;
             }
         }
@@ -72,17 +72,8 @@ pub fn parser(client: &Client) -> request::Request {
     // println!("fin loop");
     let (method, endpoint, version, headers, parameters) = parser_http(raw_request);
 
-    if let Some(algoxd) = headers.get("Content-Length") {
-        let alg_numero = algoxd.parse().unwrap_or(0);
-        if body.len() > alg_numero {
-            let resta = body.len() - alg_numero;
-            println!("resta {resta}")
-        }
-    }
-
     request::Request::new(method, endpoint, version, headers, parameters)
 }
-
 fn parser_http(
     raw_request: String,
 ) -> (
@@ -95,51 +86,59 @@ fn parser_http(
     let mut headers = HashMap::new();
     let parameters = HashMap::new();
 
+    let mut yew: Vec<&str> = Vec::new();
+    let mut method = String::new();
+    let mut endpoint = String::new();
+    let mut version = String::new();
+
     //String::from_utf8(buffer).unwrap();
     let mut lines: Vec<_> = raw_request.lines().collect();
+    // if lines.len() == 0 {
+    //     return (
+    //         String::new(),
+    //         String::new(),
+    //         String::new(),
+    //         headers,
+    //         parameters,
+    //     );
+    // }
+
     if lines.len() > 0 {
-        return (
-            String::new(),
-            String::new(),
-            String::new(),
-            headers,
-            parameters,
-        );
-    }
+        yew.append(&mut lines.remove(0).split(" ").collect::<Vec<_>>());
 
-    let yew = lines.remove(0).split(" ").collect::<Vec<_>>();
-    let method = yew.get(0).unwrap().to_string();
-    let url = yew.get(1).unwrap().to_string();
-    let version = yew
-        .get(2)
-        .unwrap()
-        .to_string()
-        .split("/")
-        .collect::<Vec<_>>()
-        .pop()
-        .unwrap()
-        .to_string();
+        method = yew.get(0).unwrap().to_string();
+        let url = yew.get(1).unwrap().to_string();
+        version = yew
+            .get(2)
+            .unwrap()
+            .to_string()
+            .split("/")
+            .collect::<Vec<_>>()
+            .pop()
+            .unwrap()
+            .to_string();
 
-    for header in lines {
-        if header.is_empty() {
-            break;
+        for header in lines {
+            if header.is_empty() {
+                break;
+            }
+            let header_split: Vec<_> = header.split(": ").collect();
+
+            if header_split.len() == 2 {
+                headers.insert(header_split[0].to_string(), header_split[1].to_string());
+            }
         }
-        let header_split: Vec<_> = header.split(": ").collect();
 
-        if header_split.len() == 2 {
-            headers.insert(header_split[0].to_string(), header_split[1].to_string());
+        let url_raw: Vec<&str> = url.split("?").collect();
+        endpoint = url_raw[0].to_string();
+
+        match url_raw.get(1) {
+            Some(params) => {
+                let _params: Vec<_> = params.split("&").collect();
+                // println!("params {:#?}", params);
+            }
+            None => (),
         }
-    }
-
-    let url_raw: Vec<&str> = url.split("?").collect();
-    let endpoint = url_raw[0].to_string();
-
-    match url_raw.get(1) {
-        Some(params) => {
-            let _params: Vec<_> = params.split("&").collect();
-            // println!("params {:#?}", params);
-        }
-        None => (),
     }
 
     (method, endpoint, version, headers, parameters)
