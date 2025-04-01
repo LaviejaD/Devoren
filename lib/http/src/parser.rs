@@ -93,8 +93,20 @@ fn parser_http(
     HashMap<String, String>,
 ) {
     let mut headers = HashMap::new();
+    let parameters = HashMap::new();
+
     //String::from_utf8(buffer).unwrap();
     let mut lines: Vec<_> = raw_request.lines().collect();
+    if lines.len() > 0 {
+        return (
+            String::new(),
+            String::new(),
+            String::new(),
+            headers,
+            parameters,
+        );
+    }
+
     let yew = lines.remove(0).split(" ").collect::<Vec<_>>();
     let method = yew.get(0).unwrap().to_string();
     let url = yew.get(1).unwrap().to_string();
@@ -119,13 +131,12 @@ fn parser_http(
         }
     }
 
-    let parameters = HashMap::new();
     let url_raw: Vec<&str> = url.split("?").collect();
     let endpoint = url_raw[0].to_string();
 
     match url_raw.get(1) {
         Some(params) => {
-            let params: Vec<_> = params.split("&").collect();
+            let _params: Vec<_> = params.split("&").collect();
             // println!("params {:#?}", params);
         }
         None => (),
