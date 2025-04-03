@@ -8,7 +8,7 @@ impl Status {
     pub fn to_string(&self) -> String {
         match self {
             Status::Ok => format!("{} {}", 200, "Ok"),
-            Status::Custom(e, m) => format!("{} {}", e, m),
+            Status::Custom(c, m) => format!("{} {}", c, m),
         }
     }
 }

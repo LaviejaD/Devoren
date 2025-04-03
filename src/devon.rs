@@ -55,9 +55,9 @@ impl Rex {
             // lister
             //     .set_nonblocking(true)
             //     .expect("Cannot set non-blocking");
-            loop {
-                match lister.accept() {
-                    Ok((client_stream, _)) => {
+            for stream in lister.incoming() {
+                match stream {
+                    Ok(client_stream) => {
                         let client = Client::new(client_stream);
                         let request = parser(&client);
                         if let Some(route) = self.routes.get(&request) {
@@ -69,19 +69,6 @@ impl Rex {
                     Err(e) => println!("Error {:#?}", e),
                 }
             }
-
-            // for stream in lister.incoming() {
-            //     match stream {
-            //         Ok(client_stream) => {
-            //             let client = Client::new(client_stream);
-            //             let request = parser(&client);
-            //             if let Some(route) = self.routes.get(&request) {
-            //                 let r = route.run(request, client);
-            //             }
-            //         }
-            //         Err(_) => println!("Error"),
-            //     }
-            // }
         }
     }
 }

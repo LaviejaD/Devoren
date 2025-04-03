@@ -1,30 +1,45 @@
 use std::thread;
+#[derive(Debug)]
+pub struct Worker {
+    thread: thread::JoinHandle<()>,
+}
+impl Worker {
+    pub fn new(t: thread::JoinHandle<()>) -> Self {
+        Self { thread: t }
+    }
+    pub fn join(self) {
+        let _ = self.thread.join();
+    }
+    pub fn is_free(&self) -> bool {
+        self.thread.is_finished()
+    }
+}
 pub struct ThreadManager {
-    threads: Vec<thread::JoinHandle<()>>,
     thread_usize: usize,
+    workers: Vec<Worker>,
 }
 
 impl ThreadManager {
     pub fn new(thread_usize: usize) -> Self {
         ThreadManager {
-            threads: Vec::new(),
             thread_usize,
+            workers: Vec::new(),
         }
     }
 
     pub fn add(&mut self, th: thread::JoinHandle<()>) {
-        println!("new thread");
-        self.threads.push(th);
+        self.workers.push(Worker::new(th));
         self.check();
     }
+
     pub fn wait(&mut self) {
-        while let Some(th) = self.threads.pop() {
-            th.join().unwrap();
-            println!("delete thread");
+        while let Some(w) = self.workers.pop() {
+            w.join();
         }
     }
+
     pub fn check(&mut self) {
-        if self.threads.len() > self.thread_usize {
+        if self.workers.len() >= self.thread_usize {
             self.wait();
         }
     }

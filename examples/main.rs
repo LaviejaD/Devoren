@@ -7,7 +7,6 @@ fn Index(request: Request) -> Response {
     if let Ok(html) = fs::read_to_string("./public/index.html") {
         response.body(html)
     }
-
     response
 }
 
