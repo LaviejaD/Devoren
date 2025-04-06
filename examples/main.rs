@@ -9,9 +9,22 @@ fn Index(request: Request) -> Response {
     }
     response
 }
-
+#[route(get,/test/<name>)]
+fn Test(request: Request) -> Response {
+    let response = Response::default().body("test".to_string());
+    response
+}
+#[route(get,/test/<lastname>)]
+fn Test2(request: Request) -> Response {
+    let response = Response::default().body("test2".to_string());
+    response
+}
 fn main() {
     let port = 8080;
     println!("http://127.0.0.1:{0}/", port);
-    Rex::new(port, 5).add_routes(Index).run();
+    Rex::new(port, 5)
+        .add_routes(Index)
+        .add_routes(Test2)
+        .add_routes(Test)
+        .run();
 }
