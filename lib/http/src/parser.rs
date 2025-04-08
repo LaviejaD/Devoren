@@ -2,7 +2,7 @@ use crate::request;
 use client::Client;
 use std::collections::HashMap;
 use std::io::{prelude::*, BufReader};
-pub fn parser(client: &Client) -> request::Request {
+pub fn parser_request(client: &Client) -> request::Request {
     //client.clone().read_to_string(&mut buffer_string).unwrap();
 
     let args = r"\r\n\r\n";
@@ -140,6 +140,42 @@ fn parser_http(
             None => (),
         }
     }
+    has_dinamy_params(endpoint.clone());
 
     (method, endpoint, version, headers, parameters)
+}
+// parser  the url  and
+// http://127.0.0.1:8080/ => [/]
+// http://127.0.0.1:8080/user/<id> =>[/user, /<id>]
+pub fn url_split(param: String) -> Vec<String> {
+    let mut result = Vec::new();
+    let mut temp = Vec::new();
+    for c in param.clone().chars() {
+        // if c == / and temp  > 0  add new string to result
+        if c == '/' && temp.len() > 0 {
+            result.push(temp.clone().iter().collect());
+            temp.clear();
+            continue;
+        }
+
+        temp.push(c);
+    }
+    if temp.len() > 0 {
+        result.push(temp.iter().collect());
+    }
+    result
+}
+//check if is  dinamy parameter
+pub fn has_dinamy_params(param: String) -> bool {
+    let mut start = false;
+    let mut end = false;
+    for pchar in param.chars() {
+        if '<' == pchar {
+            start = true;
+        }
+        if '>' == pchar {
+            end = true;
+        }
+    }
+    start == true && end == true
 }

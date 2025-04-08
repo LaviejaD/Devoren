@@ -1,6 +1,6 @@
 use crate::utils::find_port;
 use client::Client;
-use http::parser;
+use http::parser_request;
 use router::{Route, Routes};
 use std::{default, net::TcpListener};
 use thread::ThreadManager;
@@ -59,7 +59,7 @@ impl Rex {
                 match stream {
                     Ok(client_stream) => {
                         let client = Client::new(client_stream);
-                        let request = parser(&client);
+                        let request = parser_request(&client);
                         if let Some(route) = self.routes.get(&request) {
                             let r = route.run(request, client);
                             thread_manager.add(r);
