@@ -21,7 +21,6 @@ pub fn route(attr: TokenStream, item: TokenStream) -> TokenStream {
     let block = input.block;
     let method = get_attrs(&attrs, 0);
     let endpoint = get_attrs(&attrs, 1);
-    println!("{endpoint}");
 
     quote! {
         #[derive(Clone)]

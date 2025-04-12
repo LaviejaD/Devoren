@@ -1,5 +1,5 @@
 use client::Client;
-use http::{has_dinamy_params, url_split, Method, Request, Response};
+use http::{dinamy_params_len, equal_url, has_dinamy_params, url_split, Method, Request, Response};
 
 use std::{collections::HashMap, thread};
 
@@ -31,13 +31,35 @@ impl Routes {
         };
     }
 
-    pub fn get(&self, request: &Request) -> Option<&Box<dyn Route>> {
-        let endpoint = request.endpoint.clone();
-        println!("{endpoint}");
-        let method = request.method.to_string();
-        let get = format!("{} {}", method, endpoint);
+    pub fn get(&self, request: &mut Request) -> Option<&Box<dyn Route>> {
+        #[allow(unused_assignments)]
+        let mut result: Option<&Box<dyn Route>> = None;
 
-        let r = &self.routes.get(&get);
-        *r
+        let get = format!(
+            "{} {}",
+            request.method.to_string(),
+            request.endpoint.clone()
+        );
+
+        if let Some(r) = self.routes.get(&get) {
+            return Some(r);
+        }
+        let u2 = url_split(get.to_lowercase());
+        for key in self.routes_dinamy.keys() {
+            let u1 = url_split(key.clone().to_lowercase());
+            let u1p = dinamy_params_len(u1.clone());
+            if equal_url(u1.clone(), u2.clone()) {
+                for i in 0..u2.len() {
+                    if u1p[i] {
+                        request.parameters.insert(
+                            u1[i].clone().replace("/<", "").replace(">", ""),
+                            u2[i].clone().replace("/", ""),
+                        );
+                    };
+                }
+                result = self.routes_dinamy.get(key)
+            }
+        }
+        result
     }
 }

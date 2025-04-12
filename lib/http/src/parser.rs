@@ -69,10 +69,9 @@ pub fn parser_request(client: &Client) -> request::Request {
             }
         }
     }
-    // println!("fin loop");
-    let (method, endpoint, version, headers, parameters) = parser_http(raw_request);
+    let (method, endpoint, version, headers, query) = parser_http(raw_request);
 
-    request::Request::new(method, endpoint, version, headers, parameters)
+    request::Request::new(method, endpoint, version, headers, HashMap::new(), query)
 }
 fn parser_http(
     raw_request: String,
@@ -84,24 +83,14 @@ fn parser_http(
     HashMap<String, String>,
 ) {
     let mut headers = HashMap::new();
-    let parameters = HashMap::new();
+    let mut query = HashMap::new();
 
     let mut yew: Vec<&str> = Vec::new();
     let mut method = String::new();
     let mut endpoint = String::new();
     let mut version = String::new();
 
-    //String::from_utf8(buffer).unwrap();
     let mut lines: Vec<_> = raw_request.lines().collect();
-    // if lines.len() == 0 {
-    //     return (
-    //         String::new(),
-    //         String::new(),
-    //         String::new(),
-    //         headers,
-    //         parameters,
-    //     );
-    // }
 
     if lines.len() > 0 {
         yew.append(&mut lines.remove(0).split(" ").collect::<Vec<_>>());
@@ -133,49 +122,15 @@ fn parser_http(
         endpoint = url_raw[0].to_string();
 
         match url_raw.get(1) {
-            Some(params) => {
-                let _params: Vec<_> = params.split("&").collect();
-                // println!("params {:#?}", params);
+            Some(query_) => {
+                for q in query_.split("&") {
+                    let _query: Vec<_> = q.split("=").collect();
+                    query.insert(_query[0].to_string(), _query[1].to_string());
+                }
             }
             None => (),
         }
     }
-    has_dinamy_params(endpoint.clone());
 
-    (method, endpoint, version, headers, parameters)
-}
-// parser  the url  and
-// http://127.0.0.1:8080/ => [/]
-// http://127.0.0.1:8080/user/<id> =>[/user, /<id>]
-pub fn url_split(param: String) -> Vec<String> {
-    let mut result = Vec::new();
-    let mut temp = Vec::new();
-    for c in param.clone().chars() {
-        // if c == / and temp  > 0  add new string to result
-        if c == '/' && temp.len() > 0 {
-            result.push(temp.clone().iter().collect());
-            temp.clear();
-            continue;
-        }
-
-        temp.push(c);
-    }
-    if temp.len() > 0 {
-        result.push(temp.iter().collect());
-    }
-    result
-}
-//check if is  dinamy parameter
-pub fn has_dinamy_params(param: String) -> bool {
-    let mut start = false;
-    let mut end = false;
-    for pchar in param.chars() {
-        if '<' == pchar {
-            start = true;
-        }
-        if '>' == pchar {
-            end = true;
-        }
-    }
-    start == true && end == true
+    (method, endpoint, version, headers, query)
 }
