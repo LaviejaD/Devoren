@@ -2,7 +2,7 @@ use crate::request;
 use client::Client;
 use std::collections::HashMap;
 use std::io::{prelude::*, BufReader};
-pub fn parser(client: &Client) -> request::Request {
+pub fn parser_request(client: &Client) -> request::Request {
     //client.clone().read_to_string(&mut buffer_string).unwrap();
 
     let args = r"\r\n\r\n";
@@ -69,10 +69,9 @@ pub fn parser(client: &Client) -> request::Request {
             }
         }
     }
-    // println!("fin loop");
-    let (method, endpoint, version, headers, parameters) = parser_http(raw_request);
+    let (method, endpoint, version, headers, query) = parser_http(raw_request);
 
-    request::Request::new(method, endpoint, version, headers, parameters)
+    request::Request::new(method, endpoint, version, headers, HashMap::new(), query)
 }
 fn parser_http(
     raw_request: String,
@@ -84,24 +83,14 @@ fn parser_http(
     HashMap<String, String>,
 ) {
     let mut headers = HashMap::new();
-    let parameters = HashMap::new();
+    let mut query = HashMap::new();
 
     let mut yew: Vec<&str> = Vec::new();
     let mut method = String::new();
     let mut endpoint = String::new();
     let mut version = String::new();
 
-    //String::from_utf8(buffer).unwrap();
     let mut lines: Vec<_> = raw_request.lines().collect();
-    // if lines.len() == 0 {
-    //     return (
-    //         String::new(),
-    //         String::new(),
-    //         String::new(),
-    //         headers,
-    //         parameters,
-    //     );
-    // }
 
     if lines.len() > 0 {
         yew.append(&mut lines.remove(0).split(" ").collect::<Vec<_>>());
@@ -133,13 +122,15 @@ fn parser_http(
         endpoint = url_raw[0].to_string();
 
         match url_raw.get(1) {
-            Some(params) => {
-                let _params: Vec<_> = params.split("&").collect();
-                // println!("params {:#?}", params);
+            Some(query_) => {
+                for q in query_.split("&") {
+                    let _query: Vec<_> = q.split("=").collect();
+                    query.insert(_query[0].to_string(), _query[1].to_string());
+                }
             }
             None => (),
         }
     }
 
-    (method, endpoint, version, headers, parameters)
+    (method, endpoint, version, headers, query)
 }
