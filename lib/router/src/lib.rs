@@ -10,8 +10,8 @@ pub trait Route {
 }
 
 pub struct Routes {
-    routes: HashMap<String, Box<dyn Route>>,
-    routes_dinamy: HashMap<String, Box<dyn Route>>,
+    pub routes: HashMap<String, Box<dyn Route>>,
+    pub routes_dinamy: HashMap<String, Box<dyn Route>>,
 }
 
 impl Routes {

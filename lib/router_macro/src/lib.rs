@@ -45,31 +45,6 @@ pub fn route(attr: TokenStream, item: TokenStream) -> TokenStream {
                                 }
                        }
     .into()
-
-    // println!("actibutos {} {}", method, endpoint);
-    //     #[derive(Clone)]
-    //    pub struct #structname;
-
-    //    impl Route for #structname {
-
-    //        fn call(&self, #p1: Request)->Response  {
-
-    //            #block
-    //         }
-    //        fn endpoint(&self) -> (Method,String){
-
-    //               (Method::from(#method.to_string()),#endpoint.to_string())
-    //        }
-    //    }
-    // }
-    // .into()
-    // quote! {
-    // pub fn  #fn_name  ()->Route{
-
-    //     Route::new(Method::from(#method.to_string()),#endpoint.to_string(),|#p:Request| {  #block  }  )
-    // }
-    // }
-    // .into()
 }
 
 fn get_attrs(a: &Vec<&str>, index: usize) -> String {

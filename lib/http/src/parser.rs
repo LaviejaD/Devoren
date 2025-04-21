@@ -2,7 +2,7 @@ use crate::request;
 use client::Client;
 use std::collections::HashMap;
 use std::io::{prelude::*, BufReader};
-pub fn parser_request(client: &Client) -> request::Request {
+pub fn parser_http_client(client: &Client) -> request::Request {
     //client.clone().read_to_string(&mut buffer_string).unwrap();
 
     let args = r"\r\n\r\n";
@@ -69,19 +69,9 @@ pub fn parser_request(client: &Client) -> request::Request {
             }
         }
     }
-    let (method, endpoint, version, headers, query) = parser_http(raw_request);
-
-    request::Request::new(method, endpoint, version, headers, HashMap::new(), query)
+    parser_http_request(raw_request)
 }
-fn parser_http(
-    raw_request: String,
-) -> (
-    String,
-    String,
-    String,
-    HashMap<String, String>,
-    HashMap<String, String>,
-) {
+pub fn parser_http_request(raw_request: String) -> request::Request {
     let mut headers = HashMap::new();
     let mut query = HashMap::new();
 
@@ -96,7 +86,13 @@ fn parser_http(
         yew.append(&mut lines.remove(0).split(" ").collect::<Vec<_>>());
 
         method = yew.get(0).unwrap().to_string();
-        let url = yew.get(1).unwrap().to_string();
+        let url = match yew.get(1) {
+            Some(s) => {
+                println!("{s}");
+                s.to_string()
+            }
+            None => " ".to_string(),
+        };
         version = yew
             .get(2)
             .unwrap()
@@ -132,5 +128,5 @@ fn parser_http(
         }
     }
 
-    (method, endpoint, version, headers, query)
+    request::Request::new(method, endpoint, version, headers, HashMap::new(), query)
 }
