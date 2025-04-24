@@ -87,21 +87,19 @@ pub fn parser_http_request(raw_request: String) -> request::Request {
 
         method = yew.get(0).unwrap().to_string();
         let url = match yew.get(1) {
-            Some(s) => {
-                println!("{s}");
-                s.to_string()
+            Some(s) => s.to_string(),
+            None => " ".to_string(),
+        };
+        version = match yew.get(2) {
+            Some(r) => {
+                if let Some(r2) = r.to_string().split("/").collect::<Vec<_>>().pop() {
+                    r2.to_string()
+                } else {
+                    " ".to_string()
+                }
             }
             None => " ".to_string(),
         };
-        version = yew
-            .get(2)
-            .unwrap()
-            .to_string()
-            .split("/")
-            .collect::<Vec<_>>()
-            .pop()
-            .unwrap()
-            .to_string();
 
         for header in lines {
             if header.is_empty() {
