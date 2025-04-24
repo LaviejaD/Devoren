@@ -66,3 +66,8 @@ pub fn equal_url(dinamy: Vec<String>, request_url: Vec<String>) -> bool {
     }
     equal == dinamy.len()
 }
+// /user/<id>
+// /user/123
+pub fn get_url_params() -> Vec<(String, String)> {
+    Vec::new()
+}

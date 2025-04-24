@@ -1,6 +1,6 @@
 use crate::utils::find_port;
 use client::Client;
-use http::parser_http_client;
+use http::{parser_http_client, Request};
 use router::{Route, Routes};
 use std::{default, net::TcpListener};
 use thread::ThreadManager;
@@ -20,14 +20,16 @@ use thread::ThreadManager;
 pub struct Rex {
     port: u32,
     routes: Routes,
-    thread_size: usize,
+    middleware: Routes,
+    threadmanager: ThreadManager,
 }
 impl default::Default for Rex {
     fn default() -> Self {
         Rex {
             port: find_port(),
             routes: Routes::new(),
-            thread_size: 10,
+            middleware: Routes::new(),
+            threadmanager: ThreadManager::new(10),
         }
     }
 }
@@ -37,7 +39,8 @@ impl Rex {
         Rex {
             port,
             routes: Routes::new(),
-            thread_size,
+            middleware: Routes::new(),
+            threadmanager: ThreadManager::new(thread_size),
         }
     }
 
@@ -45,12 +48,24 @@ impl Rex {
         self.port = p;
         self
     }
-    pub fn add_routes(mut self, r: impl Route + 'static) -> Self {
+    pub fn add_routes(&mut self, r: impl Route + 'static) -> &mut Self {
         self.routes.insert(r);
         self
     }
-    pub fn run(self) {
-        let mut thread_manager = ThreadManager::new(self.thread_size);
+    pub fn add_middleware(&mut self, m: impl Route + 'static) -> &mut Self {
+        self.middleware.insert(m);
+        self
+    }
+    pub fn middleware_handle(&mut self, request: &mut Request) {
+        if let Some(middleware) = self.routes.get(request) {}
+    }
+    pub fn routes_handle(&mut self, request: &mut Request, client: Client) {
+        if let Some(route) = self.routes.get(request) {
+            let r = route.run(request.clone(), client);
+            self.threadmanager.add(r);
+        }
+    }
+    pub fn run(&mut self) {
         if let Ok(lister) = TcpListener::bind(format!("127.0.0.1:{0}", self.port)) {
             // lister
             //     .set_nonblocking(true)
@@ -60,10 +75,8 @@ impl Rex {
                     Ok(client_stream) => {
                         let client = Client::new(client_stream);
                         let mut request = parser_http_client(&client);
-                        if let Some(route) = self.routes.get(&mut request) {
-                            let r = route.run(request, client);
-                            thread_manager.add(r);
-                        }
+                        self.middleware_handle(&mut request);
+                        self.routes_handle(&mut request, client);
                     }
 
                     Err(e) => println!("Error {:#?}", e),

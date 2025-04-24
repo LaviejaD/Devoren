@@ -1,6 +1,6 @@
 use crate::method::Method;
 use std::collections::HashMap;
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Request {
     pub method: Method,
     pub endpoint: String,

@@ -1,27 +1,27 @@
 use client::Client;
-use http::{dinamy_params_len, equal_url, has_dinamy_params, url_split, Method, Request, Response};
+use http::{Method, Request, Response, dinamy_params_len, equal_url, has_dinamy_params, url_split};
 
 use std::{collections::HashMap, thread};
 
-pub trait Route {
+pub trait Middleware {
     fn run(&self, request: Request, client: Client) -> thread::JoinHandle<()>;
     fn endpoint(&self) -> (Method, String);
     fn callback(&self, request: Request) -> Response;
 }
 
-pub struct Routes {
-    pub routes: HashMap<String, Box<dyn Route>>,
-    pub routes_dinamy: HashMap<String, Box<dyn Route>>,
+pub struct Middlewares {
+    pub routes: HashMap<String, Box<dyn Middleware>>,
+    pub routes_dinamy: HashMap<String, Box<dyn Middleware>>,
 }
 
-impl Routes {
+impl Middlewares {
     pub fn new() -> Self {
         Self {
             routes: HashMap::new(),
             routes_dinamy: HashMap::new(),
         }
     }
-    pub fn insert(&mut self, route: impl Route + 'static) {
+    pub fn insert(&mut self, route: impl Middleware + 'static) {
         let (method, endpoint) = route.endpoint();
         let format = format!("{} {}", method.to_string(), endpoint.to_lowercase());
 
@@ -31,9 +31,9 @@ impl Routes {
         };
     }
 
-    pub fn get(&self, request: &mut Request) -> Option<&Box<dyn Route>> {
+    pub fn get(&self, request: &mut Request) -> Option<&Box<dyn Middleware>> {
         #[allow(unused_assignments)]
-        let mut result: Option<&Box<dyn Route>> = None;
+        let mut result: Option<&Box<dyn Middleware>> = None;
 
         let get = format!(
             "{} {}",
@@ -45,11 +45,9 @@ impl Routes {
             return Some(r);
         }
         let u2 = url_split(get.to_lowercase());
-        let mut count = 0;
         for key in self.routes_dinamy.keys() {
             let u1 = url_split(key.clone().to_lowercase());
             let u1p = dinamy_params_len(u1.clone());
-            count += 1;
             if equal_url(u1.clone(), u2.clone()) {
                 for i in 0..u2.len() {
                     if u1p[i] {
@@ -59,11 +57,9 @@ impl Routes {
                         );
                     };
                 }
-                result = self.routes_dinamy.get(key);
-                break;
+                result = self.routes_dinamy.get(key)
             }
         }
-        println!("soy route count {count}");
         result
     }
 }
