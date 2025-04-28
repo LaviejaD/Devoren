@@ -49,8 +49,11 @@ impl Routes {
         let u2 = url_split(get.to_lowercase());
         let mut keys = self.routes_dinamy.keys();
 
-        if let Some(key) = keys.find(|&key| equal_url(url_split(key.clone()), u2.clone())) {
-            let u1 = url_split(key.clone());
+        if let Some(key) =
+            keys.find(|&key| equal_url(url_split(key.clone().to_lowercase()), u2.clone()))
+        {
+            println!("soy route {key}");
+            let u1 = url_split(key.clone().to_lowercase());
             get_url_params_and_value(u1, u2).iter().for_each(|(n, v)| {
                 request.parameters.insert(n.clone(), v.clone());
             });
