@@ -68,6 +68,17 @@ pub fn equal_url(dinamy: Vec<String>, request_url: Vec<String>) -> bool {
 }
 // /user/<id>
 // /user/123
-pub fn get_url_params() -> Vec<(String, String)> {
-    Vec::new()
+pub fn get_url_params_and_value(
+    params_name: Vec<String>,
+    params_value: Vec<String>,
+) -> Vec<(String, String)> {
+    let mut result = Vec::new();
+    for i in 0..params_name.len() {
+        result.push((
+            params_name[i].clone().replace("/<", "").replace(">", ""),
+            params_value[i].clone().replace("/", ""),
+        ));
+    }
+
+    result
 }
