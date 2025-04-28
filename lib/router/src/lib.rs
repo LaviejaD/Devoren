@@ -1,5 +1,7 @@
 use client::Client;
-use http::{dinamy_params_len, equal_url, has_dinamy_params, url_split, Method, Request, Response};
+use http::{
+    equal_url, get_url_params_and_value, has_dinamy_params, url_split, Method, Request, Response,
+};
 
 use std::{collections::HashMap, thread};
 
@@ -45,25 +47,17 @@ impl Routes {
             return Some(r);
         }
         let u2 = url_split(get.to_lowercase());
-        let mut count = 0;
-        for key in self.routes_dinamy.keys() {
-            let u1 = url_split(key.clone().to_lowercase());
-            let u1p = dinamy_params_len(u1.clone());
-            count += 1;
-            if equal_url(u1.clone(), u2.clone()) {
-                for i in 0..u2.len() {
-                    if u1p[i] {
-                        request.parameters.insert(
-                            u1[i].clone().replace("/<", "").replace(">", ""),
-                            u2[i].clone().replace("/", ""),
-                        );
-                    };
-                }
-                result = self.routes_dinamy.get(key);
-                break;
-            }
+        let mut keys = self.routes_dinamy.keys();
+
+        if let Some(key) = keys.find(|&key| equal_url(url_split(key.clone()), u2.clone())) {
+            let u1 = url_split(key.clone());
+            get_url_params_and_value(u1, u2).iter().for_each(|(n, v)| {
+                request.parameters.insert(n.clone(), v.clone());
+            });
+
+            result = self.routes_dinamy.get(key);
         }
-        println!("soy route count {count}");
+
         result
     }
 }
