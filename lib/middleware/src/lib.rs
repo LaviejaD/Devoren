@@ -1,12 +1,18 @@
 use client::Client;
-use http::{Method, Request, Response, dinamy_params_len, equal_url, has_dinamy_params, url_split};
+use http::{
+    Method, Request, Response, equal_url, get_url_params_and_value, has_dinamy_params, url_split,
+};
 
-use std::{collections::HashMap, thread};
+use std::collections::HashMap;
 
 pub trait Middleware {
-    fn run(&self, request: Request, client: Client) -> thread::JoinHandle<()>;
     fn endpoint(&self) -> (Method, String);
-    fn callback(&self, request: Request) -> Response;
+    fn callback(&self, request: Request) -> State;
+}
+
+pub enum State {
+    Continue,
+    Response(Response),
 }
 
 pub struct Middlewares {
@@ -45,21 +51,19 @@ impl Middlewares {
             return Some(r);
         }
         let u2 = url_split(get.to_lowercase());
-        for key in self.routes_dinamy.keys() {
+        let mut keys = self.routes_dinamy.keys();
+
+        if let Some(key) =
+            keys.find(|&key| equal_url(url_split(key.clone().to_lowercase()), u2.clone()))
+        {
             let u1 = url_split(key.clone().to_lowercase());
-            let u1p = dinamy_params_len(u1.clone());
-            if equal_url(u1.clone(), u2.clone()) {
-                for i in 0..u2.len() {
-                    if u1p[i] {
-                        request.parameters.insert(
-                            u1[i].clone().replace("/<", "").replace(">", ""),
-                            u2[i].clone().replace("/", ""),
-                        );
-                    };
-                }
-                result = self.routes_dinamy.get(key)
-            }
+            get_url_params_and_value(u1, u2).iter().for_each(|(n, v)| {
+                request.parameters.insert(n.clone(), v.clone());
+            });
+
+            result = self.routes_dinamy.get(key);
         }
+
         result
     }
 }
